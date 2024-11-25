@@ -1,91 +1,119 @@
 import { Cart } from "../Models/Cart.js";
-//add ti cart
+
+// Add to Cart
 export const addToCart = async (req, res) => {
-  const { productId, title, price, qty, imgSrc } = req.body;
+    const { productId, title, price, qty, imgSrc } = req.body;
+    const userId = req.user;
 
-  const userId = req.user;
+    try {
+        let cart = await Cart.findOne({ userId });
+        if (!cart) {
+            cart = new Cart({ userId, items: [] });
+        }
 
-  let cart = await Cart.findOne({ userId });
-  if (!cart) {
-    cart = new Cart({ userId, items: [] });
-  }
-  const itemIndex = cart.items.findIndex(
-    (item) => item.productId.toString() === productId
-  );
-  if (itemIndex > -1) {
-    cart.items[itemIndex].qty += qty;
-    cart.items[itemIndex].price += price * qty;
-  } else {
-    cart.items.push({ productId, title, price, qty, imgSrc });
-  }
+        const itemIndex = cart.items.findIndex(
+            (item) => item.productId.toString() === productId
+        );
 
-  await cart.save();
-  res.json({ message: "Items added to cart", cart });
-};
+        if (itemIndex > -1) {
+            cart.items[itemIndex].qty += qty;
+        } else {
+            cart.items.push({ productId, title, pricePerUnit: price, qty, imgSrc });
+        }
 
-//get user cart
-export const userCart = async (req, res) => {
-  const userId = req.user;
-  let cart = await Cart.findOne({ userId });
-  if (!cart) return res.json({ message: "Cart not found" });
-  res.json({ message: "user cart", cart });
-};
-//remove product from cart
-export const removeProductFromCart = async (req, res) => {
-  const productId = req.params.productId;
-  const userId = req.user;
-  let cart = await Cart.findOne({ userId });
-  if (!cart) return res.json({ message: "Cart not found" });
-  cart.items = cart.items.filter(
-    (item) => item.productId.toString() !== productId
-  );
-
-  await cart.save();
-
-  res.json({ message: "product removed from cart" });
-};
-
-//clear cart
-export const clearCart = async (req, res) => {
-  const userId = req.user;
-  let cart = await Cart.findOne({ userId });
-  if (!cart) {
-    cart = new Cart({ items: [] });
-  } else {
-    cart.items = [];
-  }
-  await cart.save();
-
-  res.json({ message: "cart cleared" });
-};
-
-//decrease qt art
-export const decreaseProductQty = async (req, res) => {
-  const { productId, qty } = req.body;
-
-  const userId = req.user;
-
-  let cart = await Cart.findOne({ userId });
-  if (!cart) {
-    cart = new Cart({ userId, items: [] });
-  }
-  const itemIndex = cart.items.findIndex(
-    (item) => item.productId.toString() === productId
-  );
-  if (itemIndex > -1) {
-    const item = cart.items[itemIndex];
-
-    if (item.qty > qty) {
-      const pricePerUnit = item.price / item.qty;
-      item.qty -= qty;
-      item.price -= pricePerUnit * qty;
-    } else {
-      cart.items.splice(itemIndex, 1);
+        await cart.save();
+        res.status(200).json({ message: 'Items added to cart', cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error adding to cart', error: error.message });
     }
-  } else {
-    return res.json({ message: "invalid product id" });
-  }
+};
 
-  await cart.save();
-  res.json({ message: "Items qty decreased", cart });
+// Get User Cart
+export const userCart = async (req, res) => {
+    const userId = req.user;
+
+    try {
+        const cart = await Cart.findOne({ userId }).populate('items.productId');
+        if (!cart) {
+            return res.status(200).json({ message: 'Cart not found', cart: { items: [] } });
+        }
+
+        const total = cart.items.reduce((sum, item) => sum + item.pricePerUnit * item.qty, 0);
+        res.status(200).json({ message: 'User cart', cart, total });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching cart', error: error.message });
+    }
+};
+
+// Remove Product from Cart
+export const removeProductFromCart = async (req, res) => {
+    const productId = req.params.productId;
+    const userId = req.user;
+
+    try {
+        let cart = await Cart.findOne({ userId });
+        if (!cart) return res.status(200).json({ message: 'Cart not found' });
+
+        cart.items = cart.items.filter(
+            (item) => item.productId.toString() !== productId
+        );
+
+        await cart.save();
+        res.status(200).json({ message: 'Product removed from cart', cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error removing product', error: error.message });
+    }
+};
+
+// Clear Cart
+export const clearCart = async (req, res) => {
+    const userId = req.user;
+
+    try {
+        let cart = await Cart.findOne({ userId });
+        if (!cart) {
+            cart = new Cart({ userId, items: [] });
+        } else {
+            cart.items = [];
+        }
+
+        await cart.save();
+        res.status(200).json({ message: 'Cart cleared', cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error clearing cart', error: error.message });
+    }
+};
+
+// Decrease Product Quantity
+export const decreaseProductQty = async (req, res) => {
+    const { productId, qty } = req.body;
+    const userId = req.user;
+
+    try {
+        let cart = await Cart.findOne({ userId });
+        if (!cart) return res.status(400).json({ message: 'Cart not found' });
+
+        const itemIndex = cart.items.findIndex(
+            (item) => item.productId.toString() === productId
+        );
+
+        if (itemIndex > -1) {
+            const item = cart.items[itemIndex];
+
+            if (item.qty > qty) {
+                item.qty -= qty;
+            } else if (item.qty === qty) {
+                cart.items.splice(itemIndex, 1);
+            } else {
+                return res.status(400).json({ message: 'Invalid quantity to decrease' });
+            }
+        } else {
+            return res.status(400).json({ message: 'Product not found in cart' });
+        }
+
+        await cart.save();
+        res.status(200).json({ message: 'Product quantity decreased', cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error decreasing quantity', error: error.message });
+    }
 };
