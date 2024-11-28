@@ -2,18 +2,23 @@ import { Cart } from "../Models/Cart.js";
 
 // Add to Cart
 export const addToCart = async (req, res) => {
-    const { productId, title, price, qty, imgSrc } = req.body; // Get product details from the request body
-    const userId = req.user; // Get the user ID from the authenticated middleware
+    const { productId, title, price, qty, imgSrc } = req.body; // Destructure the request body
+    const userId = req.user; // Retrieve user ID from the authenticated middleware
+
+    // Validate required fields
+    if (!productId || !title || !price || !qty || !imgSrc) {
+        return res.status(400).json({ message: 'Missing required fields. Please provide productId, title, price, qty, and imgSrc.' });
+    }
 
     try {
-        // Find the user's cart or create a new one
+        // Find or create the user's cart
         let cart = await Cart.findOne({ userId });
         if (!cart) {
             cart = new Cart({ userId, items: [] });
         }
 
         // Check if the product already exists in the cart
-        const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
+        const itemIndex = cart.items.findIndex((item) => item.productId.toString() === productId);
         if (itemIndex > -1) {
             // If the product exists, increment the quantity
             cart.items[itemIndex].qty += qty;
@@ -22,6 +27,14 @@ export const addToCart = async (req, res) => {
             cart.items.push({ productId, title, price, qty, imgSrc });
         }
 
+        // Save the cart
+        await cart.save();
+        res.status(200).json({ message: 'Product added to cart', cart });
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+        res.status(500).json({ message: 'Error adding product to cart', error: error.message });
+    }
+};
         // Save the cart
         await cart.save();
         res.status(200).json({ message: 'Product added to cart', cart });
