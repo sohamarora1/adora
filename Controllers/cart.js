@@ -2,42 +2,37 @@ import { Cart } from "../Models/Cart.js";
 
 // Add to Cart
 export const addToCart = async (req, res) => {
-    const { productId, qty } = req.body; // Get productId and quantity from the request body
-
-    if (!productId || !qty) {
-        return res.status(400).json({ message: 'Missing required fields: productId and qty.' });
+    const { productId, title, description = "No description provided", price, category = "uncategorized", type = "unknown", qty, imgSrc } = req.body;
+    
+    // Validate the fields you must have
+    if (!productId || !title || !price || !qty || !imgSrc) {
+        return res.status(400).json({ 
+            message: 'Missing required fields. Ensure productId, title, price, qty, and imgSrc are included.' 
+        });
     }
 
-    const userId = req.user; // Extract the user ID from the Authenticated middleware
+    const userId = req.user;
 
     try {
-        // Find the product in the database using the productId
-        const product = await Product.findById(productId);
-        if (!product) {
-            return res.status(404).json({ message: 'Product not found.' });
-        }
-
-        // Get the user's cart or create a new one
         let cart = await Cart.findOne({ userId });
         if (!cart) {
             cart = new Cart({ userId, items: [] });
         }
 
-        // Check if the product is already in the cart
-        const itemIndex = cart.items.findIndex((item) => item.productId.toString() === productId);
+        const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
         if (itemIndex > -1) {
-            // If the product exists in the cart, increase its quantity
             cart.items[itemIndex].qty += qty;
         } else {
-            // Otherwise, add a new product to the cart
-            cart.items.push({
-                productId: product._id,
-                title: product.title,
-                price: product.price,
-                imgSrc: product.imgSrc,
-                qty, // Use the quantity provided in the request
-            });
+            cart.items.push({ productId, title, description, price, category, type, qty, imgSrc });
         }
+
+        await cart.save();
+        res.status(200).json({ message: 'Product added to cart.', cart });
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+        res.status(500).json({ message: 'Error adding product to cart.', error: error.message });
+    }
+};
 
         // Save the updated cart
         await cart.save();
