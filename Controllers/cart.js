@@ -2,41 +2,51 @@ import { Cart } from "../Models/Cart.js";
 
 // Add to Cart
 export const addToCart = async (req, res) => {
-    const { productId, title, price, qty, imgSrc } = req.body; // Extract the body fields
+    const { productId, qty } = req.body; // Get productId and quantity from the request body
 
-    // Validate required fields
-    if (!productId || !title || !price || !qty || !imgSrc) {
-        return res.status(400).json({ message: 'All fields are required: productId, title, price, qty, imgSrc.' });
+    if (!productId || !qty) {
+        return res.status(400).json({ message: 'Missing required fields: productId and qty.' });
     }
 
-    const userId = req.user; // Retrieve the user ID from the `Authenticated` middleware
+    const userId = req.user; // Extract the user ID from the Authenticated middleware
 
     try {
-        // Find the user's cart or create a new one
+        // Find the product in the database using the productId
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found.' });
+        }
+
+        // Get the user's cart or create a new one
         let cart = await Cart.findOne({ userId });
         if (!cart) {
             cart = new Cart({ userId, items: [] });
         }
 
-        // Check if the product already exists in the cart
+        // Check if the product is already in the cart
         const itemIndex = cart.items.findIndex((item) => item.productId.toString() === productId);
         if (itemIndex > -1) {
-            // If the product exists, increment the quantity
+            // If the product exists in the cart, increase its quantity
             cart.items[itemIndex].qty += qty;
         } else {
-            // Otherwise, add the product to the cart
-            cart.items.push({ productId, title, price, qty, imgSrc });
+            // Otherwise, add a new product to the cart
+            cart.items.push({
+                productId: product._id,
+                title: product.title,
+                price: product.price,
+                imgSrc: product.imgSrc,
+                qty, // Use the quantity provided in the request
+            });
         }
 
-        // Save the cart
+        // Save the updated cart
         await cart.save();
         res.status(200).json({ message: 'Product added to cart successfully.', cart });
     } catch (error) {
-        console.error('Error adding product to cart:', error);
+        console.error('Error adding to cart:', error);
         res.status(500).json({ message: 'Error adding product to cart.', error: error.message });
     }
 };
-       
 
 // Get User Cart
 export const userCart = async (req, res) => {
