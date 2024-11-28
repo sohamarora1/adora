@@ -2,29 +2,31 @@ import { Cart } from "../Models/Cart.js";
 
 // Add to Cart
 export const addToCart = async (req, res) => {
-    const { productId, title, price, qty, imgSrc } = req.body;
-    const userId = req.user;
+    const { productId, title, price, qty, imgSrc } = req.body; // Get product details from the request body
+    const userId = req.user; // Get the user ID from the authenticated middleware
 
     try {
+        // Find the user's cart or create a new one
         let cart = await Cart.findOne({ userId });
         if (!cart) {
             cart = new Cart({ userId, items: [] });
         }
 
-        const itemIndex = cart.items.findIndex(
-            (item) => item.productId.toString() === productId
-        );
-
+        // Check if the product already exists in the cart
+        const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
         if (itemIndex > -1) {
+            // If the product exists, increment the quantity
             cart.items[itemIndex].qty += qty;
         } else {
-            cart.items.push({ productId, title, pricePerUnit: price, qty, imgSrc });
+            // Otherwise, add the product to the cart
+            cart.items.push({ productId, title, price, qty, imgSrc });
         }
 
+        // Save the cart
         await cart.save();
-        res.status(200).json({ message: 'Items added to cart', cart });
+        res.status(200).json({ message: 'Product added to cart', cart });
     } catch (error) {
-        res.status(500).json({ message: 'Error adding to cart', error: error.message });
+        res.status(500).json({ message: 'Error adding product to cart', error: error.message });
     }
 };
 
