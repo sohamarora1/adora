@@ -62,24 +62,35 @@ export const register = async (req, res) => {
   }
 };
 //user login
-export const login = async (req, res) => {
-  const { email, password } = req.body;
+export const loginUser = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'User not found' });
+        }
 
-  try {
-    let user = await User.findOne({ email });
-    if (!user) return res.json({ message: "User not found", success: false });
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword)
-      return res.json({ message: "invalid credential", success: false });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
-    const token = jwt.sign({ userId: user._id }, "(*&98767", {
-      expiresIn: "365d",
-    });
+        // Generate token with expiration
+        const token = jwt.sign(
+            { userId: user._id }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '1h' } // Token expires in 1 hour
+        );
 
-    res.json({ message: `welcome ${user.name}`, token, success: true });
-  } catch (error) {
-    res.json({ message: error.message });
-  }
+        res.json({ 
+            message: 'Login successful', 
+            token,
+            userId: user._id 
+        });
+    } catch (error) {
+        console.error('Login Error:', error);
+        res.status(500).json({ message: 'Server error during login' });
+    }
 };
 
 //get all user
