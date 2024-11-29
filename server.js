@@ -14,6 +14,25 @@ app.use(cors({
   methods:[ "GET","POST","PUT","DELETE"],
   credentials:true
 }))
+const express = require('express');
+const cors = require('cors'); // Import the cors package
+
+const app = express();
+
+// Configure CORS
+const corsOptions = {
+  origin: 'https://adorafrontend.vercel.app', // Replace with your frontend URL
+  methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS', // Allowed HTTP methods
+  allowedHeaders: 'Content-Type,Authorization', // Allowed headers
+};
+
+// Use CORS middleware
+app.use(cors(corsOptions));
+
+
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
 
 
 
