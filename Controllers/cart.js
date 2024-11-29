@@ -17,9 +17,10 @@ export const addToCart = async (req, res) => {
     cart.items[itemIndex].price += price * qty;
   } else {
     cart.items.push({ productId, title, price, qty, imgSrc });
-  }
+  }  await cart.save();
+  res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Auth');
 
-  await cart.save();
   res.json({ message: "Items added to cart", cart });
 };
 
@@ -28,6 +29,10 @@ export const userCart = async (req, res) => {
   const userId = req.user;
   let cart = await Cart.findOne({ userId });
   if (!cart) return res.json({ message: "Cart not found" });
+ // Set CORS headers
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Auth');
+        
   res.json({ message: "user cart", cart });
 };
 //remove product from cart
@@ -41,6 +46,10 @@ export const removeProductFromCart = async (req, res) => {
   );
 
   await cart.save();
+ // Set CORS headers
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Auth');
+        
 
   res.json({ message: "product removed from cart" });
 };
@@ -55,7 +64,10 @@ export const clearCart = async (req, res) => {
     cart.items = [];
   }
   await cart.save();
-
+ // Set CORS headers
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Auth');
+        
   res.json({ message: "cart cleared" });
 };
 
@@ -85,7 +97,10 @@ export const decreaseProductQty = async (req, res) => {
   } else {
     return res.json({ message: "invalid product id" });
   }
-
+ // Set CORS headers
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Auth');
+        
   await cart.save();
   res.json({ message: "Items qty decreased", cart });
 };
