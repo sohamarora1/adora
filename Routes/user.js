@@ -1,19 +1,14 @@
-import express from "express";
-import { login, profile, register, users } from "../Controllers/user.js";
-import { Authenticated } from "../Middlewares/auth.js";
+import express from 'express';
+import { 
+    registerUser, 
+    loginUser, 
+    validateToken 
+} from '../Controllers/user.js';
 
 const router = express.Router();
 
-//register user
-router.post("/register", register);
-
-//login user
-router.post("/login", login);
-
-//get all users
-router.get("/all", users);
-
-//get profile
-router.get("/profile",Authenticated, profile);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+router.post('/validate-token', validateToken); // New validation endpoint
 
 export default router;
