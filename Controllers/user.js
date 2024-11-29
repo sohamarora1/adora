@@ -47,7 +47,7 @@ export const validateToken = async (req, res) => {
     }
 };
 //user register
-export const register = async (req, res) => {
+export const registerUser= async (req, res) => {
   const { name, email, password } = req.body;
   try {
     let user = await User.findOne({ email });
