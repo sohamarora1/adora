@@ -7,15 +7,25 @@ import cartRouter from "./Routes/cart.js";
 import addressRouter from "./Routes/address.js";
 import cors from 'cors';
 
+const cors = require('cors');
+const express = require('express');
 const app = express();
-app.use(express.json());
+
+// Allow CORS for specific frontend origins
+const allowedOrigins = ['http://localhost:3000', 'https://adorafrontend.vercel.app'];
 app.use(cors({
-  origin:true,
-  methods:[ "GET","POST","PUT","DELETE"],
-  credentials:true
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true, // Allow credentials like cookies or tokens
 }));
 
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 //home testing route
