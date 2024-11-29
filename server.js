@@ -35,7 +35,7 @@ app.get("/", (req, res) => res.json({ message: "This is home route" }));
 app.use("/api/user", userRouter);
 
 //product router
-app.use('/api/product', require('./routes/product')); // Replace 'products' with your route file
+app.use('/api/product',productRouter); // Replace 'products' with your route file
 
 //cart router
 app.use("/api/cart", cartRouter);
