@@ -7,13 +7,19 @@ import cartRouter from "./Routes/cart.js";
 import addressRouter from "./Routes/address.js";
 import cors from 'cors';
 
+const express = require('express');
+const cors = require('cors');
+
 const app = express();
-app.use(express.json());
+
 app.use(cors({
-  origin:true,
-  methods:[ "GET","POST","PUT","DELETE"],
-  credentials:true
+  origin: '*', // or '*' to allow all origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
+
+
 
 
 
