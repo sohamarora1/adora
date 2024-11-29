@@ -6,20 +6,15 @@ import productRouter from "./Routes/product.js";
 import cartRouter from "./Routes/cart.js";
 import addressRouter from "./Routes/address.js";
 import cors from 'cors';
-const express = require('express');
-const cors = require('cors');
-const app = express();
 
-// CORS configuration
+const app = express();
+app.use(express.json());
 app.use(cors({
-    origin: ['https://adorafrontend.vercel.app'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Auth', 'Origin', 'X-Requested-With', 'Accept']
+  origin:true,
+  methods:[ "GET","POST","PUT","DELETE"],
+  credentials:true
 }));
 
-// Other middleware
-app.use(express.json());
 
 
 
