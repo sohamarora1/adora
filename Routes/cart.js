@@ -2,15 +2,7 @@ import express from "express";
 import { addToCart, clearCart, decreaseProductQty, removeProductFromCart, userCart } from "../Controllers/cart.js";
 
 import { Authenticated } from "../Middlewares/auth.js";
-import cors from 'cors';
 
-// CORS middleware for specific routes if needed
-const corsOptions = {
-    origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Auth']
-};
 
 
 const router = express.Router();
