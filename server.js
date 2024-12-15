@@ -8,6 +8,9 @@ import cors from 'cors';
 
 const app = express();
 
+
+
+app.use(cors());
 // Dynamic CORS Configuration
 const corsOptions = {
     origin: function (origin, callback) {
