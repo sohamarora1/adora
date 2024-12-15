@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../Models/User.js';
 
 export const Authenticated = async (req, res, next) => {
-    try {
+   try {
         // Check for token in different possible header formats
         let token = req.headers.auth || 
                     req.headers.authorization || 
@@ -13,6 +13,15 @@ export const Authenticated = async (req, res, next) => {
             token = token.slice(7);
         }
 
+        // Ensure token is a string
+        if (typeof token === 'object') {
+            try {
+                // If it's an object, try to extract the token
+                token = token.token;
+            } catch (error) {
+                return res.status(401).json({ message: 'Invalid token format.' });
+            }
+        }
         if (!token) {
             return res.status(401).json({ message: 'Access denied. No token provided.' });
         }
