@@ -25,7 +25,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api/address", addressRouter);
 
 // MongoDB Connection
-mongoose.connect("mongodb+srv://sohamarora80:zgYYRc64iHqQ63jz@cluster0.srq1w.mongodb.net/", {
+mongoose.connect("mongodb+srv://sohamarora80:sohamarora80@cluster0.srq1w.mongodb.net/", {
     dbName: "Trendify_Ecommerce",
     useNewUrlParser: true,
     useUnifiedTopology: true
